@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="WebRTC Javascript code samples">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+
+    <base target="_blank">
+
+    <title>环信会议</title>
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./app.css">
+    
+    <style>
+
+        .open-in-brw-tip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+        }
+
+        .open-in-brw-tip img {
+            width: 58.6vw;
+            height: 13.3vh;
+            float: right;
+        }
+    </style>
+</head>
+
+<body class="clearfix">
+    <div id="app" :class="{'in-pc' : os == 'PC'}">
+        <div class="welcome-to-easemob-meeting">- 欢迎使用环信会议 -</div>
+        <el-card class="box-card">
+            <div class="meeting-title" v-cloak>{{invitees}}邀请您加入会议</div>
+            <div class="meeting-name-container">
+                <span class="meeting-name" v-cloak>{{roomName}}</span>
+                <i class="el-icon-document-copy" @click='copy("roomName")'></i>
+            </div>
+        </el-card>
+        <div v-if='confr_finished'>会议已结束</div>
+        <div v-else class="join-button-wrapper">
+            <el-button
+                type="primary"
+                @click='join'
+                class="join"
+            >
+                加入会议
+            </el-button>
+            <div class='tips'>您可以 <span @click='copy("url")'>复制会议邀请</span>，发送给其他成员</div>
+        </div>
+
+        <!-- 如果微信打开页面 -->
+        <div v-if='open_in_brw' class="open-in-brw-tip">
+            <img src="./img/open-in-brw-tip.png">
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+<!-- 引入组件库 -->
+<script src="./index.js"></script>
+<script>
+    new Vue({
+        data: {
+            invitees: '',
+            roomName: '',
+            password: '',
+            confr_finished: false,
+            os:'', // 设备系统
+            chat: '', // wixin or qq
+            open_in_brw: false // 是否需要提示在浏览器打开
+        },
+        methods: {
+            checkOpen(cb){ // 是否打开了 app
+                var _clickTime = +(new Date());
+                function check(elsTime) {
+                    if ( elsTime > 3000 || document.hidden || document.webkitHidden) {
+                        cb(1);
+                    } else {
+                        cb(0);
+                    }
+                }
+                //启动间隔20ms运行的定时器，并检测累计消耗时间是否超过3000ms，超过则结束
+                var _count = 0, intHandle;
+                intHandle = setInterval(function(){
+                    _count++;        
+                    var elsTime = +(new Date()) - _clickTime;
+                    if (_count>=100 || elsTime > 3000 ) {
+                        clearInterval(intHandle);
+                        check(elsTime);
+                    }
+                }, 20);
+            },
+            join() {
+
+                if(this.open_in_brw){
+                    return
+                }
+                
+                if(this.os == 'iPhone' || this.os == 'Android') {
+                    this.checkOpen(result => { // 检测是否安装 app
+                        if(!result) {
+                            window.location.href='./download.html';
+                        }
+                    })
+                }
+
+                let query = `?roomName=${this.roomName}`;
+
+
+                if(this.os == 'Android') {
+                    window.location = 'easemobvideo://conference' + query;
+                    return
+                }
+                if(this.os == 'iPhone') {
+                    window.location.href = 'iOSVideoCall://' + query;
+                    return
+                }
+
+
+
+                window.location.href = 'https://zq-webim-hsb.easemob.com/#/' + query
+                // window.location.href = 'https://rtc-turn4-hsb.easemob.com/rtc-ws/video_call_demo_prod/#/' + query
+                // window.location.href = 'https://localhost:3000/#/' + query
+            },
+            getPageQuery(query) { // 从url获取参数
+                if(!query) {
+                    return ''
+                }
+
+                let search = window.location.href.split('?')[1];
+
+                if(!search) {
+                    return ''
+                }
+
+                let query_value = '';
+
+                let key_value_arr = search.split('&');
+                key_value_arr.map(item => {
+                    let key = item.split('=')[0];
+                    let value = item.split('=')[1];
+
+                    if(query == key) {
+                        query_value = value
+                    }
+
+                })
+
+                return decodeURI(query_value)
+
+            },
+            copy(type) {
+                let  text = '', message = '文本已复制粘贴板';
+                if(type == 'url') {
+                    text = window.location.href;
+                    message = '会议邀请已复制粘贴板'
+                } else if(type == 'roomName') {
+                    text=this.roomName
+                    message = '房间名称已复制粘贴板'
+                }
+
+                if(!text) {
+                    return
+                }
+
+                let oInput = document.createElement('input');
+                oInput.value = text;
+                oInput.className='copy-input'
+                document.body.appendChild(oInput);
+                
+                oInput.select();//选中文本
+                try {
+                    document.execCommand('copy');
+                    this.$message({
+                        showClose: false,
+                        message,
+                        type: 'success',
+                        offset: 50,
+                        iconClass: 'coustom'
+                    });
+                } catch (error) {
+                    this.$message({
+                        showClose: false,
+                        message: '复制邀请文本失败',
+                        type: 'error'
+                    });
+                }
+
+                document.body.removeChild(oInput)
+            }
+        },
+        created: function () {
+
+            // 检测设备操作系统
+            let UA = navigator.userAgent;
+            if(UA.indexOf('MicroMessenger') > -1) { // 是否在 wechat or qq
+                this.chat = 'wixin';
+            }
+            if(UA.indexOf('QQ') > -1) { // 是否在 wechat or qq
+                this.chat = 'QQ';
+            }
+
+            if(UA.indexOf('Android') > -1 ) {
+                this.os = 'Android';
+            }else if(
+                UA.indexOf('iPhone') > -1 || 
+                UA.indexOf('iPad') > -1 || 
+                UA.indexOf('iPod') > -1
+            ) { // iPad、iPod 都使用 iPhone 下载连接
+                this.os = 'iPhone';
+            } else this.os = 'PC';
+
+            // 是否需要提示在浏览器打开
+            if(
+                this.chat == 'wixin'
+                || (this.chat == 'QQ' && this.os == 'iPhone')
+            ) {
+                this.open_in_brw = true;
+            }
+
+            // 获取屏幕高度
+            document.getElementsByTagName("body")[0].style.height = window.innerHeight + 'px';
+
+            // 获取邀请信息
+            this.invitees = this.getPageQuery('invitees') || '';
+            this.roomName = this.getPageQuery('roomName') || '';
+            this.password = this.getPageQuery('password') || '';
+
+        }
+    }).$mount('#app');
+</script>
+
+</body>
+</html>

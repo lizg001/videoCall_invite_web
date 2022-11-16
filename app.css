@@ -1,0 +1,115 @@
+[v-cloak] {
+    display: none;
+} 
+body {
+    margin: 0;
+    padding: 0;
+    background: url('./img/bg.png') no-repeat;
+    background-size: cover;
+}
+.clearfix:after,
+.clearfix::before{
+    content: "";
+    display: table;
+    clear: both;
+}
+#app {
+    padding: 10px;
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+    background: #fff;
+}
+#app.in-pc {
+    height: 456px;
+    width: 375px;
+    border-radius: 6px;
+    box-shadow: 0 0 20px 0 rgba(0,0,0,.2);
+    
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    right: 0; 
+    bottom: 0;
+    margin: auto;
+
+}
+
+body .el-message {
+    background-color: #000;
+    border-color: #000;
+    min-width: 157px;
+    color: #fff;
+}
+body .el-message-box__wrapper {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body .el-message-box {
+    width: 90%;
+}
+.welcome-to-easemob-meeting {
+    text-align: center;
+    font-size: 12px;
+    color: #c8cacc;
+    line-height: 40px;
+
+    margin-bottom: 20px;
+}
+.meeting-title {
+    font: 16px bold;
+    line-height: 26px;
+    color: #2d3033;
+}
+.meeting-name-container {
+    text-align: center;
+
+}
+.meeting-name-container i{
+    font-size: 20px;
+    vertical-align: super;
+    color: blue;
+    cursor: pointer;
+}
+.meeting-name {
+    font: 30px bold;
+    color: #2d3033;
+    letter-spacing: 0;
+
+}
+.join-button-wrapper {
+    position: absolute;
+    bottom: 20%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+.join {
+    width: 90%;
+}
+.tips {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #666666;
+}
+
+.tips > span {
+    cursor: pointer;
+    color: blue;
+}
+.copy-input { /* 用于复制的隐藏框 */
+    position: fixed;
+    height: 6px;
+    top: -8px;
+    opacity: 0;
+};
+
+
